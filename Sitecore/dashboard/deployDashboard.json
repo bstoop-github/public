@@ -1,0 +1,1275 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "cdWebAppName": {
+      "type": "string",
+      "defaultValue": "Name of a CD App Service"
+    },
+    "dashboardName": {
+      "type": "string",
+      "defaultValue": "Sitecore dashboard"
+    },
+    "logAnalyticsWorkspaceName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of your Log Analytics Workspace"
+      }
+    },
+    "logAnalyticsWorkspaceResourceGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource Group Log Analytics exists is"
+      }
+    }
+  },
+
+  "variables": {
+    "dashboardID": "[concat(uniquestring(resourceGroup().id), uniquestring(parameters('dashboardName')))]",
+    "itemDataModelID": "[concat(uniquestring(resourceGroup().id), uniquestring('itemDataModelID'))]",
+    "jsonDefinitionId": "[concat(uniquestring(resourceGroup().id), uniquestring('jsonDefinitionId'))]",
+    "filterTypeId": "[concat(uniquestring(resourceGroup().id), uniquestring('filterTypeId'))]"
+  },
+
+  "resources": [
+    {
+      "name": "[variables('dashboardID')]",
+      "type": "Microsoft.Portal/dashboards",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-08-01-preview",
+      "tags": {
+        "hidden-title": "[parameters('dashboardName')]"
+      },
+      "properties": {
+        "lenses": {
+          "0": {
+            "order": 0,
+            "parts": {
+              "0": {
+                "position": {
+                  "x": 0,
+                  "y": 0,
+                  "rowSpan": 4,
+                  "colSpan": 5
+                },
+                "metadata": {
+                  "inputs": [
+                    {
+                      "name": "ComponentId",
+                      "value": {
+                        "SubscriptionId": "[subscription().subscriptionId]",
+                        "ResourceGroup": "[parameters('logAnalyticsWorkspaceResourceGroup')]",
+                        "Name": "[parameters('logAnalyticsWorkspaceName')]"
+                      }
+                    },
+                    {
+                      "name": "Query",
+                      "value": "traces\n| where timestamp > ago(1h)\n| where message contains \"ERROR\"\n| where (customDimensions).Role contains \"CD\"\n| project timestamp, message, (customDimensions).InstanceName\n| order by timestamp desc \n"
+                    },
+                    {
+                      "name": "Version",
+                      "value": "1.0"
+                    },
+                    {
+                      "name": "DashboardId",
+                      "value": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().Name,'/providers/Microsoft.Portal/dashboards/',variables('dashboardID'))]"
+                    },
+                    {
+                      "name": "PartId",
+                      "value": "[concat(uniquestring(variables('dashboardID')), 'Part1')]"
+                    },
+                    {
+                      "name": "PartTitle",
+                      "value": "Analytics"
+                    },
+                    {
+                      "name": "PartSubTitle",
+                      "value": "[parameters('logAnalyticsWorkspaceName')]"
+                    },
+                    {
+                      "name": "resourceTypeMode",
+                      "value": "components"
+                    },
+                    {
+                      "name": "ControlType",
+                      "value": "AnalyticsGrid"
+                    },
+                    {
+                      "name": "Dimensions",
+                      "isOptional": true
+                    },
+                    {
+                      "name": "TimeRange",
+                      "isOptional": true
+                    },
+                    {
+                      "name": "SpecificChart",
+                      "isOptional": true
+                    }
+                  ],
+                  "type": "Extension/AppInsightsExtension/PartType/AnalyticsPart",
+                  "settings": {
+                    "content": {
+                      "PartTitle": "CD - ERROR",
+                      "PartSubTitle": "Query on ERROR messages (1h)"
+                    }
+                  },
+                  "asset": {
+                    "idInputName": "ComponentId",
+                    "type": "ApplicationInsights"
+                  }
+                }
+              },
+              "1": {
+                "position": {
+                  "x": 5,
+                  "y": 0,
+                  "rowSpan": 4,
+                  "colSpan": 5
+                },
+                "metadata": {
+                  "inputs": [
+                    {
+                      "name": "ComponentId",
+                      "value": {
+                        "SubscriptionId": "[subscription().subscriptionId]",
+                        "ResourceGroup": "[parameters('logAnalyticsWorkspaceResourceGroup')]",
+                        "Name": "[parameters('logAnalyticsWorkspaceName')]"
+                      }
+                    },
+                    {
+                      "name": "Query",
+                      "value": "traces\n| where timestamp > ago(1h)\n| where message contains \"ERROR\"\n| where (customDimensions).Role contains \"CM\"\n| project timestamp, message, (customDimensions).InstanceName\n| order by timestamp desc \n"
+                    },
+                    {
+                      "name": "Version",
+                      "value": "1.0"
+                    },
+                    {
+                      "name": "DashboardId",
+                      "value": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().Name,'/providers/Microsoft.Portal/dashboards/',variables('dashboardID'))]"
+                    },
+                    {
+                      "name": "PartId",
+                      "value": "[concat(uniquestring(variables('dashboardID')), 'Part2')]"
+                    },
+                    {
+                      "name": "PartTitle",
+                      "value": "Analytics"
+                    },
+                    {
+                      "name": "PartSubTitle",
+                      "value": "[parameters('logAnalyticsWorkspaceName')]"
+                    },
+                    {
+                      "name": "resourceTypeMode",
+                      "value": "components"
+                    },
+                    {
+                      "name": "ControlType",
+                      "value": "AnalyticsGrid"
+                    },
+                    {
+                      "name": "Dimensions",
+                      "isOptional": true
+                    },
+                    {
+                      "name": "TimeRange",
+                      "isOptional": true
+                    },
+                    {
+                      "name": "SpecificChart",
+                      "isOptional": true
+                    }
+                  ],
+                  "type": "Extension/AppInsightsExtension/PartType/AnalyticsPart",
+                  "settings": {
+                    "content": {
+                      "PartTitle": "CM - ERROR",
+                      "PartSubTitle": "Query on error messages (1h)"
+                    }
+                  },
+                  "asset": {
+                    "idInputName": "ComponentId",
+                    "type": "ApplicationInsights"
+                  }
+                }
+              },
+              "2": {
+                "position": {
+                  "x": 10,
+                  "y": 0,
+                  "rowSpan": 4,
+                  "colSpan": 11
+                },
+                "metadata": {
+                  "inputs": [
+                    {
+                      "name": "ComponentId",
+                      "value": {
+                        "SubscriptionId": "[subscription().subscriptionId]",
+                        "ResourceGroup": "[parameters('logAnalyticsWorkspaceResourceGroup')]",
+                        "Name": "[parameters('logAnalyticsWorkspaceName')]"
+                      }
+                    },
+                    {
+                      "name": "Query",
+                      "value": "traces\n| where timestamp > ago(24h)\n| extend localTime = timestamp + 1h\n| where message contains \"ERROR\"\n| where message !contains \"INFO\" and message !contains \"WARN\" and message !contains \"Could not update device detection\" \n| project localTime, message, (customDimensions).InstanceName\n| order by localTime desc \n"
+                    },
+                    {
+                      "name": "Version",
+                      "value": "1.0"
+                    },
+                    {
+                      "name": "DashboardId",
+                      "value": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().Name,'/providers/Microsoft.Portal/dashboards/',variables('dashboardID'))]"
+                    },
+                    {
+                      "name": "PartId",
+                      "value": "[concat(uniquestring(variables('dashboardID')), 'Part3')]"
+                    },
+                    {
+                      "name": "PartTitle",
+                      "value": "Analytics"
+                    },
+                    {
+                      "name": "PartSubTitle",
+                      "value": "[parameters('logAnalyticsWorkspaceName')]"
+                    },
+                    {
+                      "name": "resourceTypeMode",
+                      "value": "components"
+                    },
+                    {
+                      "name": "ControlType",
+                      "value": "AnalyticsGrid"
+                    },
+                    {
+                      "name": "Dimensions",
+                      "isOptional": true
+                    },
+                    {
+                      "name": "TimeRange",
+                      "isOptional": true
+                    },
+                    {
+                      "name": "SpecificChart",
+                      "isOptional": true
+                    }
+                  ],
+                  "type": "Extension/AppInsightsExtension/PartType/AnalyticsPart",
+                  "settings": {
+                    "content": {
+                      "PartTitle": "ALL INSTANCES - ERROR",
+                      "PartSubTitle": "Query on all error messages (1h)"
+                    }
+                  },
+                  "asset": {
+                    "idInputName": "ComponentId",
+                    "type": "ApplicationInsights"
+                  }
+                }
+              },
+              "3": {
+                "position": {
+                  "x": 22,
+                  "y": 0,
+                  "rowSpan": 4,
+                  "colSpan": 6
+                },
+                "metadata": {
+                  "inputs": [
+                    {
+                      "name": "ComponentId",
+                      "value": {
+                        "SubscriptionId": "[subscription().subscriptionId]",
+                        "ResourceGroup": "[parameters('logAnalyticsWorkspaceResourceGroup')]",
+                        "Name": "[parameters('logAnalyticsWorkspaceName')]"
+                      }
+                    },
+                    {
+                      "name": "Query",
+                      "value": "pageViews\r\n| where timestamp > ago(14d)\r\n| summarize TotalUniqueSessions = dcount(session_Id) by bin(timestamp, 1d)\r\n| order by timestamp asc\r\n| render barchart kind=default "
+                    },
+                    {
+                      "name": "Dimensions",
+                      "value": {
+                        "xAxis": {
+                          "name": "timestamp",
+                          "type": "DateTime"
+                        },
+                        "yAxis": [
+                          {
+                            "name": "TotalUniqueSessions",
+                            "type": "Int64"
+                          }
+                        ],
+                        "splitBy": [],
+                        "aggregation": "Sum"
+                      }
+                    },
+                    {
+                      "name": "Version",
+                      "value": "1.0"
+                    },
+                    {
+                      "name": "DashboardId",
+                      "value": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().Name,'/providers/Microsoft.Portal/dashboards/',variables('dashboardID'))]"
+                    },
+                    {
+                      "name": "PartId",
+                      "value": "[concat(uniquestring(variables('dashboardID')), 'Part4')]"
+                    },
+                    {
+                      "name": "PartTitle",
+                      "value": "Analytics"
+                    },
+                    {
+                      "name": "PartSubTitle",
+                      "value": "[parameters('logAnalyticsWorkspaceName')]"
+                    },
+                    {
+                      "name": "resourceTypeMode",
+                      "value": "components"
+                    },
+                    {
+                      "name": "ControlType",
+                      "value": "AnalyticsChart"
+                    },
+                    {
+                      "name": "SpecificChart",
+                      "value": "Bar"
+                    },
+                    {
+                      "name": "TimeRange",
+                      "isOptional": true
+                    }
+                  ],
+                  "type": "Extension/AppInsightsExtension/PartType/AnalyticsPart",
+                  "settings": {
+                    "content": {
+                      "PartTitle": "Unique sessions",
+                      "PartSubTitle": "14 DAYS"
+                    }
+                  },
+                  "asset": {
+                    "idInputName": "ComponentId",
+                    "type": "ApplicationInsights"
+                  }
+                }
+              },
+              "4": {
+                "position": {
+                  "x": 28,
+                  "y": 0,
+                  "rowSpan": 4,
+                  "colSpan": 6
+                },
+                "metadata": {
+                  "inputs": [
+                    {
+                      "name": "ComponentId",
+                      "value": {
+                        "SubscriptionId": "[subscription().subscriptionId]",
+                        "ResourceGroup": "[parameters('logAnalyticsWorkspaceResourceGroup')]",
+                        "Name": "[parameters('logAnalyticsWorkspaceName')]"
+                      }
+                    },
+                    {
+                      "name": "Query",
+                      "value": "traces\n| where timestamp > ago(1d)\n| where message contains \"certificate\""
+                    },
+                    {
+                      "name": "Version",
+                      "value": "1.0"
+                    },
+                    {
+                      "name": "DashboardId",
+                      "value": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().Name,'/providers/Microsoft.Portal/dashboards/',variables('dashboardID'))]"
+                    },
+                    {
+                      "name": "PartId",
+                      "value": "[concat(uniquestring(variables('dashboardID')), 'Part5')]"
+                    },
+                    {
+                      "name": "PartTitle",
+                      "value": "Analytics"
+                    },
+                    {
+                      "name": "PartSubTitle",
+                      "value": "[parameters('logAnalyticsWorkspaceName')]"
+                    },
+                    {
+                      "name": "resourceTypeMode",
+                      "value": "components"
+                    },
+                    {
+                      "name": "ControlType",
+                      "value": "AnalyticsGrid"
+                    },
+                    {
+                      "name": "Dimensions",
+                      "isOptional": true
+                    },
+                    {
+                      "name": "TimeRange",
+                      "isOptional": true
+                    },
+                    {
+                      "name": "SpecificChart",
+                      "isOptional": true
+                    }
+                  ],
+                  "type": "Extension/AppInsightsExtension/PartType/AnalyticsPart",
+                  "settings": {
+                    "content": {
+                      "PartTitle": "Messages containing 'certificate'",
+                      "PartSubTitle": "1 day"
+                    }
+                  },
+                  "asset": {
+                    "idInputName": "ComponentId",
+                    "type": "ApplicationInsights"
+                  }
+                }
+              },
+              "5": {
+                "position": {
+                  "x": 0,
+                  "y": 4,
+                  "rowSpan": 4,
+                  "colSpan": 5
+                },
+                "metadata": {
+                  "inputs": [
+                    {
+                      "name": "ComponentId",
+                      "value": {
+                        "SubscriptionId": "[subscription().subscriptionId]",
+                        "ResourceGroup": "[parameters('logAnalyticsWorkspaceResourceGroup')]",
+                        "Name": "[parameters('logAnalyticsWorkspaceName')]"
+                      }
+                    },
+                    {
+                      "name": "Query",
+                      "value": "traces\r\n| where timestamp > ago(72h)\r\n| where message contains \"ERROR\"\r\n| where (customDimensions).Role contains \"CD\"\r\n| extend localTime = timestamp + 1h\r\n| summarize Amount_Of_Errors=dcount(message) by bin(localTime, 1h)\r\n| order by localTime asc\r\n| render timechart\r\n"
+                    },
+                    {
+                      "name": "Dimensions",
+                      "value": {
+                        "xAxis": {
+                          "name": "localTime",
+                          "type": "DateTime"
+                        },
+                        "yAxis": [
+                          {
+                            "name": "Amount_Of_Errors",
+                            "type": "Int64"
+                          }
+                        ],
+                        "splitBy": [],
+                        "aggregation": "Sum"
+                      }
+                    },
+                    {
+                      "name": "Version",
+                      "value": "1.0"
+                    },
+                    {
+                      "name": "DashboardId",
+                      "value": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().Name,'/providers/Microsoft.Portal/dashboards/',variables('dashboardID'))]"
+                    },
+                    {
+                      "name": "PartId",
+                      "value": "[concat(uniquestring(variables('dashboardID')), 'Part6')]"
+                    },
+                    {
+                      "name": "PartTitle",
+                      "value": "Analytics"
+                    },
+                    {
+                      "name": "PartSubTitle",
+                      "value": "[parameters('logAnalyticsWorkspaceName')]"
+                    },
+                    {
+                      "name": "resourceTypeMode",
+                      "value": "components"
+                    },
+                    {
+                      "name": "ControlType",
+                      "value": "AnalyticsChart"
+                    },
+                    {
+                      "name": "SpecificChart",
+                      "value": "Line"
+                    },
+                    {
+                      "name": "TimeRange",
+                      "isOptional": true
+                    }
+                  ],
+                  "type": "Extension/AppInsightsExtension/PartType/AnalyticsPart",
+                  "settings": {
+                    "content": {
+                      "PartTitle": "CD - Error count",
+                      "PartSubTitle": "Last week",
+                      "Query": "traces\n| where timestamp > ago(144h)\n| where message contains \"ERROR\"\n| where (customDimensions).Role contains \"CD\"\n| extend localTime = timestamp + 1h\n| summarize Amount_Of_Errors=dcount(message) by bin(localTime, 1h)\n| order by localTime asc\n| render timechart\n"
+                    }
+                  },
+                  "asset": {
+                    "idInputName": "ComponentId",
+                    "type": "ApplicationInsights"
+                  }
+                }
+              },
+              "6": {
+                "position": {
+                  "x": 5,
+                  "y": 4,
+                  "rowSpan": 4,
+                  "colSpan": 5
+                },
+                "metadata": {
+                  "inputs": [
+                    {
+                      "name": "ComponentId",
+                      "value": {
+                        "SubscriptionId": "[subscription().subscriptionId]",
+                        "ResourceGroup": "[parameters('logAnalyticsWorkspaceResourceGroup')]",
+                        "Name": "[parameters('logAnalyticsWorkspaceName')]"
+                      }
+                    },
+                    {
+                      "name": "Query",
+                      "value": "traces\r\n| where timestamp > ago(144h)\r\n| where message contains \"ERROR\"\r\n| where (customDimensions).Role contains \"CM\"\r\n| extend localTime = timestamp + 1h\r\n| summarize Amount_Of_Errors=dcount(message) by bin(localTime, 1h)\r\n| order by localTime asc\r\n| render timechart"
+                    },
+                    {
+                      "name": "Dimensions",
+                      "value": {
+                        "xAxis": {
+                          "name": "localTime",
+                          "type": "DateTime"
+                        },
+                        "yAxis": [
+                          {
+                            "name": "Amount_Of_Errors",
+                            "type": "Int64"
+                          }
+                        ],
+                        "splitBy": [],
+                        "aggregation": "Sum"
+                      }
+                    },
+                    {
+                      "name": "Version",
+                      "value": "1.0"
+                    },
+                    {
+                      "name": "DashboardId",
+                      "value": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().Name,'/providers/Microsoft.Portal/dashboards/',variables('dashboardID'))]"
+                    },
+                    {
+                      "name": "PartId",
+                      "value": "[concat(uniquestring(variables('dashboardID')), 'Part7')]"
+                    },
+                    {
+                      "name": "PartTitle",
+                      "value": "Analytics"
+                    },
+                    {
+                      "name": "PartSubTitle",
+                      "value": "[parameters('logAnalyticsWorkspaceName')]"
+                    },
+                    {
+                      "name": "resourceTypeMode",
+                      "value": "components"
+                    },
+                    {
+                      "name": "ControlType",
+                      "value": "AnalyticsChart"
+                    },
+                    {
+                      "name": "SpecificChart",
+                      "value": "Line"
+                    },
+                    {
+                      "name": "TimeRange",
+                      "isOptional": true
+                    }
+                  ],
+                  "type": "Extension/AppInsightsExtension/PartType/AnalyticsPart",
+                  "settings": {
+                    "content": {
+                      "PartTitle": "CM - Error count",
+                      "PartSubTitle": "Last week"
+                    }
+                  },
+                  "asset": {
+                    "idInputName": "ComponentId",
+                    "type": "ApplicationInsights"
+                  }
+                }
+              },
+              "7": {
+                "position": {
+                  "x": 10,
+                  "y": 4,
+                  "rowSpan": 4,
+                  "colSpan": 11
+                },
+                "metadata": {
+                  "inputs": [
+                    {
+                      "name": "ComponentId",
+                      "value": {
+                        "SubscriptionId": "[subscription().subscriptionId]",
+                        "ResourceGroup": "[parameters('logAnalyticsWorkspaceResourceGroup')]",
+                        "Name": "[parameters('logAnalyticsWorkspaceName')]"
+                      }
+                    },
+                    {
+                      "name": "Query",
+                      "value": "traces\r\n| where timestamp > ago(144h)\r\n| where message !contains \"INFO\" and message !contains \"WARN\" and message !contains \"Could not update device detection\" \r\n| extend localTime = timestamp + 1h\r\n| summarize Amount_Of_Errors=dcount(message) by bin(localTime, 1h)\r\n| order by localTime asc\r\n| render timechart\n"
+                    },
+                    {
+                      "name": "Dimensions",
+                      "value": {
+                        "xAxis": {
+                          "name": "localTime",
+                          "type": "DateTime"
+                        },
+                        "yAxis": [
+                          {
+                            "name": "Amount_Of_Errors",
+                            "type": "Int64"
+                          }
+                        ],
+                        "splitBy": [],
+                        "aggregation": "Sum"
+                      }
+                    },
+                    {
+                      "name": "Version",
+                      "value": "1.0"
+                    },
+                    {
+                      "name": "DashboardId",
+                      "value": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().Name,'/providers/Microsoft.Portal/dashboards/',variables('dashboardID'))]"
+                    },
+                    {
+                      "name": "PartId",
+                      "value": "[concat(uniquestring(variables('dashboardID')), 'Part8')]"
+                    },
+                    {
+                      "name": "PartTitle",
+                      "value": "Analytics"
+                    },
+                    {
+                      "name": "PartSubTitle",
+                      "value": "[parameters('logAnalyticsWorkspaceName')]"
+                    },
+                    {
+                      "name": "resourceTypeMode",
+                      "value": "components"
+                    },
+                    {
+                      "name": "ControlType",
+                      "value": "AnalyticsChart"
+                    },
+                    {
+                      "name": "SpecificChart",
+                      "value": "Line"
+                    },
+                    {
+                      "name": "TimeRange",
+                      "isOptional": true
+                    }
+                  ],
+                  "type": "Extension/AppInsightsExtension/PartType/AnalyticsPart",
+                  "settings": {
+                    "content": {
+                      "PartTitle": "All Instances - Error Count",
+                      "PartSubTitle": "LAST WEEK"
+                    }
+                  },
+                  "asset": {
+                    "idInputName": "ComponentId",
+                    "type": "ApplicationInsights"
+                  }
+                }
+              },
+              "8": {
+                "position": {
+                  "x": 22,
+                  "y": 4,
+                  "rowSpan": 4,
+                  "colSpan": 6
+                },
+                "metadata": {
+                  "inputs": [
+                    {
+                      "name": "ComponentId",
+                      "value": {
+                        "SubscriptionId": "[subscription().subscriptionId]",
+                        "ResourceGroup": "[parameters('logAnalyticsWorkspaceResourceGroup')]",
+                        "Name": "[parameters('logAnalyticsWorkspaceName')]"
+                      }
+                    },
+                    {
+                      "name": "Query",
+                      "value": "traces | where message contains \"license\" and severityLevel > 1\n"
+                    },
+                    {
+                      "name": "TimeRange",
+                      "value": "2018-06-03T07:00:46.000Z/2018-08-09T07:00:46.416Z"
+                    },
+                    {
+                      "name": "Version",
+                      "value": "1.0"
+                    },
+                    {
+                      "name": "DashboardId",
+                      "value": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().Name,'/providers/Microsoft.Portal/dashboards/',variables('dashboardID'))]"
+                    },
+                    {
+                      "name": "PartId",
+                      "value": "[concat(uniquestring(variables('dashboardID')), 'Part9')]"
+                    },
+                    {
+                      "name": "PartTitle",
+                      "value": "Analytics"
+                    },
+                    {
+                      "name": "PartSubTitle",
+                      "value": "[parameters('logAnalyticsWorkspaceName')]"
+                    },
+                    {
+                      "name": "resourceTypeMode",
+                      "value": "components"
+                    },
+                    {
+                      "name": "ControlType",
+                      "value": "AnalyticsGrid"
+                    },
+                    {
+                      "name": "Dimensions",
+                      "isOptional": true
+                    },
+                    {
+                      "name": "SpecificChart",
+                      "isOptional": true
+                    }
+                  ],
+                  "type": "Extension/AppInsightsExtension/PartType/AnalyticsPart",
+                  "settings": {
+                    "content": {
+                      "PartTitle": "License issues",
+                      "PartSubTitle": "14 days",
+                      "Query": "traces\n| where timestamp > ago(14d)\n| where message contains \"license\" and severityLevel > 1\n"
+                    }
+                  },
+                  "asset": {
+                    "idInputName": "ComponentId",
+                    "type": "ApplicationInsights"
+                  }
+                }
+              },
+              "9": {
+                "position": {
+                  "x": 28,
+                  "y": 4,
+                  "rowSpan": 4,
+                  "colSpan": 6
+                },
+                "metadata": {
+                  "inputs": [
+                    {
+                      "name": "options",
+                      "value": {
+                        "charts": [
+                          {
+                            "metrics": [
+                              {
+                                "name": "Http2xx",
+                                "resourceMetadata": {
+                                  "resourceId": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().Name,'/providers/Microsoft.Portal/dashboards/',parameters('cdWebAppName'))]"
+                                },
+                                "aggregationType": 4
+                              }
+                            ],
+                            "title": "Sum Http 2xx",
+                            "visualization": {
+                              "chartType": 2
+                            },
+                            "timeContext": {
+                              "options": {
+                                "grain": 7,
+                                "showUTCTime": false,
+                                "appliedISOGrain": "PT5M"
+                              },
+                              "relative": {
+                                "duration": 2592000000
+                              }
+                            },
+                            "itemDataModel": {
+                              "id": "[variables('itemDataModelID')]",
+                              "chartHeight": 1,
+                              "metrics": [
+                                {
+                                  "id": {
+                                    "resourceDefinition": {
+                                      "id": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().Name,'/providers/Microsoft.Web/sites/',parameters('cdWebAppName'))]"
+                                    },
+                                    "name": {
+                                      "id": "Http2xx",
+                                      "displayName": "Http 2xx"
+                                    },
+                                    "dataSource": 1,
+                                    "namespace": {
+                                      "name": "microsoft.web/sites"
+                                    }
+                                  },
+                                  "metricAggregation": 1,
+                                  "color": "#47BDF5"
+                                }
+                              ],
+                              "priorPeriod": false,
+                              "horizontalBars": true,
+                              "showOther": false,
+                              "aggregation": 1,
+                              "palette": "multiColor",
+                              "jsonDefinitionId": "[variables('jsonDefinitionId')]",
+                              "version": {
+                                "major": 1,
+                                "minor": 0,
+                                "build": 0
+                              },
+                              "filters": {
+                                "filterType": 0,
+                                "id": "[variables('filterTypeId')]",
+                                "OperandFilters": [],
+                                "LogicalOperator": 0
+                              },
+                              "yAxisOptions": {
+                                "options": 1
+                              },
+                              "title": "Sum Http 2xx",
+                              "titleKind": "Auto",
+                              "visualization": {
+                                "chartType": 2
+                              },
+                              "appliedISOGrain": "PT5M"
+                            }
+                          }
+                        ],
+                        "v2charts": true
+                      }
+                    },
+                    {
+                      "name": "sharedTimeRange",
+                      "isOptional": true
+                    }
+                  ],
+                  "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+                  "settings": {}
+                }
+              },
+              "10": {
+                "position": {
+                  "x": 0,
+                  "y": 9,
+                  "rowSpan": 4,
+                  "colSpan": 5
+                },
+                "metadata": {
+                  "inputs": [
+                    {
+                      "name": "ComponentId",
+                      "value": {
+                        "SubscriptionId": "[subscription().subscriptionId]",
+                        "ResourceGroup": "[parameters('logAnalyticsWorkspaceResourceGroup')]",
+                        "Name": "[parameters('logAnalyticsWorkspaceName')]"
+                      }
+                    },
+                    {
+                      "name": "Query",
+                      "value": "exceptions\n| where timestamp > ago(14d)\n| extend localTime = timestamp + 1h\n| project localTime, (customDimensions).MachineName, assembly, outerMessage"
+                    },
+                    {
+                      "name": "Version",
+                      "value": "1.0"
+                    },
+                    {
+                      "name": "DashboardId",
+                      "value": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().Name,'/providers/Microsoft.Portal/dashboards/',variables('dashboardID'))]"
+                    },
+                    {
+                      "name": "PartId",
+                      "value": "[concat(uniquestring(variables('dashboardID')), 'Part10')]"
+                    },
+                    {
+                      "name": "PartTitle",
+                      "value": "Analytics"
+                    },
+                    {
+                      "name": "PartSubTitle",
+                      "value": "[parameters('logAnalyticsWorkspaceName')]"
+                    },
+                    {
+                      "name": "resourceTypeMode",
+                      "value": "components"
+                    },
+                    {
+                      "name": "ControlType",
+                      "value": "AnalyticsGrid"
+                    },
+                    {
+                      "name": "Dimensions",
+                      "isOptional": true
+                    },
+                    {
+                      "name": "TimeRange",
+                      "isOptional": true
+                    },
+                    {
+                      "name": "SpecificChart",
+                      "isOptional": true
+                    }
+                  ],
+                  "type": "Extension/AppInsightsExtension/PartType/AnalyticsPart",
+                  "settings": {
+                    "content": {
+                      "PartTitle": "All Exceptions",
+                      "PartSubTitle": "14 days"
+                    }
+                  },
+                  "asset": {
+                    "idInputName": "ComponentId",
+                    "type": "ApplicationInsights"
+                  }
+                }
+              },
+              "11": {
+                "position": {
+                  "x": 5,
+                  "y": 9,
+                  "rowSpan": 4,
+                  "colSpan": 5
+                },
+                "metadata": {
+                  "inputs": [
+                    {
+                      "name": "ComponentId",
+                      "value": {
+                        "SubscriptionId": "[subscription().subscriptionId]",
+                        "ResourceGroup": "[parameters('logAnalyticsWorkspaceResourceGroup')]",
+                        "Name": "[parameters('logAnalyticsWorkspaceName')]"
+                      }
+                    },
+                    {
+                      "name": "Query",
+                      "value": "traces |\r\nwhere severityLevel >= 3"
+                    },
+                    {
+                      "name": "TimeRange",
+                      "value": "P1D"
+                    },
+                    {
+                      "name": "Version",
+                      "value": "1.0"
+                    },
+                    {
+                      "name": "DashboardId",
+                      "value": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().Name,'/providers/Microsoft.Portal/dashboards/',variables('dashboardID'))]"
+                    },
+                    {
+                      "name": "PartId",
+                      "value": "[concat(uniquestring(variables('dashboardID')), 'Part11')]"
+                    },
+                    {
+                      "name": "PartTitle",
+                      "value": "Analytics"
+                    },
+                    {
+                      "name": "PartSubTitle",
+                      "value": "[parameters('logAnalyticsWorkspaceName')]"
+                    },
+                    {
+                      "name": "resourceTypeMode",
+                      "value": "components"
+                    },
+                    {
+                      "name": "ControlType",
+                      "value": "AnalyticsGrid"
+                    },
+                    {
+                      "name": "Dimensions",
+                      "isOptional": true
+                    },
+                    {
+                      "name": "SpecificChart",
+                      "isOptional": true
+                    }
+                  ],
+                  "type": "Extension/AppInsightsExtension/PartType/AnalyticsPart",
+                  "settings": {
+                    "content": {
+                      "PartTitle": "Log Entries With Severity 3",
+                      "PartSubTitle": "All Instances"
+                    }
+                  },
+                  "asset": {
+                    "idInputName": "ComponentId",
+                    "type": "ApplicationInsights"
+                  }
+                }
+              },
+              "12": {
+                "position": {
+                  "x": 10,
+                  "y": 9,
+                  "rowSpan": 4,
+                  "colSpan": 6
+                },
+                "metadata": {
+                  "inputs": [
+                    {
+                      "name": "ComponentId",
+                      "value": {
+                        "SubscriptionId": "[subscription().subscriptionId]",
+                        "ResourceGroup": "[parameters('logAnalyticsWorkspaceResourceGroup')]",
+                        "Name": "[parameters('logAnalyticsWorkspaceName')]"
+                      }
+                    },
+                    {
+                      "name": "Query",
+                      "value": "requests\r\n| where timestamp > ago(1d)\r\n//| where resultCode == \"404\"\r\n| summarize count() by url\r\n| order by count_ desc | project url, count_"
+                    },
+                    {
+                      "name": "Version",
+                      "value": "1.0"
+                    },
+                    {
+                      "name": "DashboardId",
+                      "value": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().Name,'/providers/Microsoft.Portal/dashboards/',variables('dashboardID'))]"
+                    },
+                    {
+                      "name": "PartId",
+                      "value": "[concat(uniquestring(variables('dashboardID')), 'Part12')]"
+                    },
+                    {
+                      "name": "PartTitle",
+                      "value": "Analytics"
+                    },
+                    {
+                      "name": "PartSubTitle",
+                      "value": "[parameters('logAnalyticsWorkspaceName')]"
+                    },
+                    {
+                      "name": "resourceTypeMode",
+                      "value": "components"
+                    },
+                    {
+                      "name": "ControlType",
+                      "value": "AnalyticsGrid"
+                    },
+                    {
+                      "name": "Dimensions",
+                      "isOptional": true
+                    },
+                    {
+                      "name": "TimeRange",
+                      "isOptional": true
+                    },
+                    {
+                      "name": "SpecificChart",
+                      "isOptional": true
+                    }
+                  ],
+                  "type": "Extension/AppInsightsExtension/PartType/AnalyticsPart",
+                  "settings": {
+                    "content": {
+                      "PartTitle": "Most Hit Urls",
+                      "PartSubTitle": "14 Days",
+                      "Query": "requests\n| where timestamp > ago(14d)\n| summarize count() by url\n| order by count_ desc | project url, count_"
+                    }
+                  },
+                  "asset": {
+                    "idInputName": "ComponentId",
+                    "type": "ApplicationInsights"
+                  }
+                }
+              },
+              "13": {
+                "position": {
+                  "x": 16,
+                  "y": 9,
+                  "rowSpan": 4,
+                  "colSpan": 6
+                },
+                "metadata": {
+                  "inputs": [
+                    {
+                      "name": "ComponentId",
+                      "value": {
+                        "SubscriptionId": "[subscription().subscriptionId]",
+                        "ResourceGroup": "[parameters('logAnalyticsWorkspaceResourceGroup')]",
+                        "Name": "[parameters('logAnalyticsWorkspaceName')]"
+                      }
+                    },
+                    {
+                      "name": "Query",
+                      "value": "requests\r\n| where timestamp > ago(14d)\r\n| extend localTime = timestamp + 1h\r\n| where resultCode == \"404\"\r\n| order by localTime desc"
+                    },
+                    {
+                      "name": "Version",
+                      "value": "1.0"
+                    },
+                    {
+                      "name": "DashboardId",
+                      "value": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().Name,'/providers/Microsoft.Portal/dashboards/',variables('dashboardID'))]"
+                    },
+                    {
+                      "name": "PartId",
+                      "value": "[concat(uniquestring(variables('dashboardID')), 'Part13')]"
+                    },
+                    {
+                      "name": "PartTitle",
+                      "value": "Analytics"
+                    },
+                    {
+                      "name": "PartSubTitle",
+                      "value": "[parameters('logAnalyticsWorkspaceName')]"
+                    },
+                    {
+                      "name": "resourceTypeMode",
+                      "value": "components"
+                    },
+                    {
+                      "name": "ControlType",
+                      "value": "AnalyticsGrid"
+                    },
+                    {
+                      "name": "Dimensions",
+                      "isOptional": true
+                    },
+                    {
+                      "name": "TimeRange",
+                      "isOptional": true
+                    },
+                    {
+                      "name": "SpecificChart",
+                      "isOptional": true
+                    }
+                  ],
+                  "type": "Extension/AppInsightsExtension/PartType/AnalyticsPart",
+                  "settings": {
+                    "content": {
+                      "PartTitle": "404 status codes",
+                      "PartSubTitle": "All instance - 14 DAYS"
+                    }
+                  },
+                  "asset": {
+                    "idInputName": "ComponentId",
+                    "type": "ApplicationInsights"
+                  }
+                }
+              },
+              "14": {
+                "position": {
+                  "x": 22,
+                  "y": 9,
+                  "rowSpan": 4,
+                  "colSpan": 6
+                },
+                "metadata": {
+                  "inputs": [
+                    {
+                      "name": "ComponentId",
+                      "value": {
+                        "SubscriptionId": "[subscription().subscriptionId]",
+                        "ResourceGroup": "[parameters('logAnalyticsWorkspaceResourceGroup')]",
+                        "Name": "[parameters('logAnalyticsWorkspaceName')]"
+                      }
+                    },
+                    {
+                      "name": "Query",
+                      "value": "requests\r\n| where timestamp > ago(14d)\r\n| where resultCode == \"404\"\r\n| summarize count() by url\r\n| order by count_ desc | project url, count_"
+                    },
+                    {
+                      "name": "Version",
+                      "value": "1.0"
+                    },
+                    {
+                      "name": "DashboardId",
+                      "value": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().Name,'/providers/Microsoft.Portal/dashboards/',variables('dashboardID'))]"
+                    },
+                    {
+                      "name": "PartId",
+                      "value": "[concat(uniquestring(variables('dashboardID')), 'Part14')]"
+                    },
+                    {
+                      "name": "PartTitle",
+                      "value": "Analytics"
+                    },
+                    {
+                      "name": "PartSubTitle",
+                      "value": "[parameters('logAnalyticsWorkspaceName')]"
+                    },
+                    {
+                      "name": "resourceTypeMode",
+                      "value": "components"
+                    },
+                    {
+                      "name": "ControlType",
+                      "value": "AnalyticsGrid"
+                    },
+                    {
+                      "name": "Dimensions",
+                      "isOptional": true
+                    },
+                    {
+                      "name": "TimeRange",
+                      "isOptional": true
+                    },
+                    {
+                      "name": "SpecificChart",
+                      "isOptional": true
+                    }
+                  ],
+                  "type": "Extension/AppInsightsExtension/PartType/AnalyticsPart",
+                  "settings": {
+                    "content": {
+                      "PartTitle": "What pages return 404",
+                      "PartSubTitle": "14 Days"
+                    }
+                  },
+                  "asset": {
+                    "idInputName": "ComponentId",
+                    "type": "ApplicationInsights"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "metadata": {
+          "model": {
+            "timeRange": {
+              "value": {
+                "relative": {
+                  "duration": 24,
+                  "timeUnit": 1
+                }
+              },
+              "type": "MsPortalFx.Composition.Configuration.ValueTypes.TimeRange"
+            }
+          }
+        }
+      }
+    }
+  ],
+
+  "outputs": {
+  }
+}

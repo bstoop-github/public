@@ -60,11 +60,6 @@ Function GeneratePasswordandAddToKeyVault ($KeyVaultName, $Secret) {
     $GeneratedPassword = Invoke-RestMethod `
         -Uri ("https://passwordwolf.com/api/?length={0}&exclude={1}&repeat=1" -f $PasswordLength, $ExcludedCharacters )
 
-    $localIp = (Invoke-RestMethod http://ipinfo.io/json | Select-Object -exp ip)
-    $localIp
-
-    Update-AzKeyVaultNetworkRuleSet -VaultName 'kevmcwopshubs01' -ResourceGroupName "rg-mcw-ops-hub-s" -Bypass AzureServices -IpAddressRange "$localIp" -PassThru
-
     try {    
         Set-AzKeyVaultSecret `
             -VaultName $KeyVaultName `
@@ -78,6 +73,14 @@ Function GeneratePasswordandAddToKeyVault ($KeyVaultName, $Secret) {
         Write-Error $($error[0].exception.message)
     }
 }
+
+# // Allowing the temporary IP of the deployment container to access the Azure Key Vault:
+
+    $localIp = (Invoke-RestMethod http://ipinfo.io/json | Select-Object -exp ip)
+    $localIp
+
+    Update-AzKeyVaultNetworkRuleSet -VaultName 'kevmcwopshubs01' -ResourceGroupName "rg-mcw-ops-hub-s" -Bypass AzureServices -IpAddressRange "$localIp" -PassThru
+# 
 
 Foreach ($Secret in $KeyVaultSecrets) {
 

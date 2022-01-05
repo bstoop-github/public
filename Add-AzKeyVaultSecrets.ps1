@@ -20,7 +20,7 @@
     PS C:\> .\Add-AzKeyVaultSecrets.ps1 -KeyVaultSecrets VirtualMachineLocalAdmin -KeyVaultName kev-we-lz-d-01 -AddNewSecretIfAlreadyExists -PasswordLength 7 -ExcludedCharacters ",-!"
     Generate a secret with a length of 7 characters, without the provided characters and add it to the provided key vault with the provided secret name. It will generate a new secret version if the secret already exists.
 .NOTES
-    Version 0.1 Created by Robin Makkus
+
 #>
 
 
@@ -59,6 +59,11 @@ Function GeneratePasswordandAddToKeyVault ($KeyVaultName, $Secret) {
 
     $GeneratedPassword = Invoke-RestMethod `
         -Uri ("https://passwordwolf.com/api/?length={0}&exclude={1}&repeat=1" -f $PasswordLength, $ExcludedCharacters )
+
+    $localIp = (Invoke-RestMethod http://ipinfo.io/json | Select-Object -exp ip)
+    $localIp
+
+    Update-AzKeyVaultNetworkRuleSet -VaultName 'kevmcwopshubs01' -ResourceGroupName "rg-mcw-ops-hub-s" -Bypass AzureServices -IpAddressRange "$localIp" -PassThru
 
     try {    
         Set-AzKeyVaultSecret `

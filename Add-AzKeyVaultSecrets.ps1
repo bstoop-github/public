@@ -35,6 +35,11 @@ param (
     [Parameter(Mandatory = $True)]
     [string]
     $KeyVaultName,
+    
+    # Name of the RG where the keyvault is deployed in
+    [Parameter(Mandatory = $True)]
+    [string]
+    $ResourceGroupName,
 
     # If you want to add a new version of the secret run it with this parameter
     [Parameter(Mandatory = $False)]
@@ -79,7 +84,7 @@ Function GeneratePasswordandAddToKeyVault ($KeyVaultName, $Secret) {
     $localIp = (Invoke-RestMethod http://ipinfo.io/json | Select-Object -exp ip)
     $localIp
 
-    Update-AzKeyVaultNetworkRuleSet -VaultName 'kevmcwopshubs01' -ResourceGroupName "rg-mcw-ops-hub-s" -Bypass AzureServices -IpAddressRange "$localIp" -PassThru
+    Update-AzKeyVaultNetworkRuleSet -VaultName "$KeyVaultName" -ResourceGroupName "$ResourceGroupName" -Bypass AzureServices -IpAddressRange "$localIp" -PassThru
 # 
 
 Foreach ($Secret in $KeyVaultSecrets) {
